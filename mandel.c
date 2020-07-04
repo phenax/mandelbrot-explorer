@@ -38,8 +38,11 @@ GC color_gc(XColor c) {
 
 void initialize_colors() {
   background = to_xcolor("#0f0c19");
-  steps[step_count++] = (Step) { 100,   to_xcolor("#ff0000"), NULL, .should_paint = False };
-  steps[step_count++] = (Step) { 80,    to_xcolor("#ffffff"), NULL, 1 };
+  steps[step_count++] = (Step) { 100,   NULL, NULL, .should_paint = False };
+  steps[step_count++] = (Step) { 90,    to_xcolor("#ff0000"), NULL, 1 };
+  steps[step_count++] = (Step) { 80,    to_xcolor("#ffff00"), NULL, 1 };
+  steps[step_count++] = (Step) { 70,    to_xcolor("#00ff00"), NULL, 1 };
+  steps[step_count++] = (Step) { 50,    to_xcolor("#ffffff"), NULL, 1 };
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
@@ -92,6 +95,13 @@ void plot_mandelbrot() {
   XSync(dpy, False);
 }
 
+void cleanup() {
+  if (win) {
+    XUnmapWindow(dpy, win);
+    XDestroyWindow(dpy, win);
+  }
+}
+
 int key_quantifier = 0;
 void keypress(XKeyEvent ev) {
   int dummy;
@@ -109,13 +119,17 @@ void keypress(XKeyEvent ev) {
 
   int times = key_quantifier ? key_quantifier : 1;
   switch(*keysym) {
-    case XK_q: running = False; break;
+    case XK_q:
+      XFree(keysym);
+      cleanup();
+      exit(0);
+      return;
 
     // Movement
     case XK_h: offset_x -= scale_offset * movement * times; break;
     case XK_l: offset_x += scale_offset * movement * times; break;
-    case XK_j: offset_y -= scale_offset * movement * times; break;
-    case XK_k: offset_y += scale_offset * movement * times; break;
+    case XK_j: offset_y += scale_offset * movement * times; break;
+    case XK_k: offset_y -= scale_offset * movement * times; break;
 
     // Zoom
     case XK_equal: scale_offset /= zoomdiff*times; break;
@@ -136,13 +150,6 @@ void keypress(XKeyEvent ev) {
   }
 
   XFree(keysym);
-}
-
-void cleanup() {
-  if (win) {
-    XUnmapWindow(dpy, win);
-    XDestroyWindow(dpy, win);
-  }
 }
 
 int error_handler() {
