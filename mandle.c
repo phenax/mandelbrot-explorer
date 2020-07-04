@@ -7,18 +7,20 @@
 
 // TODO: Multithread the drawing
 
+typedef struct Step { unsigned int step; XColor color; GC gc; char should_paint } Step;
+
 Display *dpy;
 int screen = 0;
 Window root, win;
 unsigned int width, height;
 
-int offset_x = 0, offset_y = 0;
-double scale_offset = 0;
+double offset_x = 0, offset_y = 0;
+double scale_offset = 1;
 
-typedef struct Step { unsigned int step; XColor color; GC gc; } Step;
+Step steps[10];
+unsigned int step_count = 0;
 
-#define GRADIENT_STEPS 6
-Step steps[GRADIENT_STEPS];
+XColor background;
 
 XColor to_xcolor(const char *colorstr) {
   XColor ptr, dummy;
@@ -34,13 +36,10 @@ GC color_gc(XColor c) {
 }
 
 void initialize_colors() {
-  int i = 0;
-  steps[i++] = (Step) { 0,    to_xcolor("#000557"), NULL };
-  steps[i++] = (Step) { 8,    to_xcolor("#101567"), NULL };
-  steps[i++] = (Step) { 20,   to_xcolor("#5055a7"), NULL };
-  steps[i++] = (Step) { 50,   to_xcolor("#ffffff"), NULL };
-  steps[i++] = (Step) { 100,  to_xcolor("#ffffff"), NULL };
-  steps[i++] = (Step) { 100,  to_xcolor("#000000"), NULL };
+  background = to_xcolor("#0f0c19");
+  steps[step_count++] = (Step) { 200,   to_xcolor("#000000"), NULL, 0 };
+  steps[step_count++] = (Step) { 100,   to_xcolor("#ffffff"), NULL, 1 };
+  steps[step_count++] = (Step) { 20,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
 void plot_mandlebrot() {
@@ -51,21 +50,23 @@ void plot_mandlebrot() {
 
   double threshold = 1000;
   double size = width;
-  int max_iterations = steps[GRADIENT_STEPS - 1].step;
+  int max_iterations = steps[0].step;
 
-  for(s = 0; s < GRADIENT_STEPS; s++) {
-    steps[s].gc = color_gc(steps[s].color);
+  for(s = 0; s < step_count; s++) {
+    if (steps[s].should_paint) {
+      steps[s].gc = color_gc(steps[s].color);
+    }
   }
 
-  double scale = 4 + scale_offset;
+  double scale = 4 * absf(scale_offset);
 
   XClearWindow(dpy, win);
 
   for(i = 0; i < size; i++) {
-    c.real = (offset_x + (double) i - (width / 2)) * scale / size;
+    c.real = offset_x + ((double) i - (width / 2)) * scale / size;
 
     for (j = 0; j < size; j++) {
-      c.im = (offset_y + (double) j - (height / 2)) * scale / size;
+      c.im = offset_y + ((double) j - (height / 2)) * scale / size;
 
       z.real = z.im = 0;
       mag = magnitude(z);
@@ -77,9 +78,11 @@ void plot_mandlebrot() {
         mag = magnitude(z);
       }
 
-      for (s = 0; s < GRADIENT_STEPS; s++) {
-        if (count >= steps[s].step) {
-          XDrawPoint(dpy, win, steps[s].gc, i, j);
+      for (s = 0; s < step_count - 1; s++) {
+        if (steps[s].step != 0 && count >= steps[s].step) {
+          if (steps[s].gc)
+            XDrawPoint(dpy, win, steps[s].gc, i, j);
+          break;
         }
       }
     }
@@ -93,8 +96,8 @@ void keypress(XKeyEvent ev) {
   int tmp;
   KeySym *keysym = XGetKeyboardMapping(dpy, ev.keycode, 1, &tmp);
 
-  int movement = 50;
-  double zoomdiff = 0.3;
+  double movement = 0.2;
+  double zoomdiff = 1.2;
 
   char should_rerender = True;
 
@@ -105,17 +108,25 @@ void keypress(XKeyEvent ev) {
 
   int times = quantifier ? quantifier : 1;
   switch(*keysym) {
+    // Movement
     case XK_h: offset_x -= movement * times; break;
     case XK_l: offset_x += movement * times; break;
     case XK_j: offset_y += movement * times; break;
     case XK_k: offset_y -= movement * times; break;
-    case XK_equal: scale_offset -= zoomdiff * times; break;
-    case XK_minus: scale_offset += zoomdiff * times; break;
+
+    case XK_Left: offset_x -= scale_offset * movement * times; break;
+    case XK_Right: offset_x += scale_offset * movement * times; break;
+    case XK_Up: offset_y += scale_offset * movement * times; break;
+    case XK_Down: offset_y -= scale_offset * movement * times; break;
+
+    // Zoom
+    case XK_equal: scale_offset /= zoomdiff*times; break;
+    case XK_minus: scale_offset *= zoomdiff*times; break;
 
     case XK_space: // Reset
       offset_x = 0;
       offset_y = 0;
-      scale_offset = 0;
+      scale_offset = 1;
       break;
     default: should_rerender = False;
   }
@@ -189,7 +200,7 @@ int main() {
 
   initialize_colors();
 
-  win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 1, BlackPixel(dpy, screen), steps[0].color.pixel);
+  win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 1, BlackPixel(dpy, screen), background.pixel);
 
   XSelectInput(dpy, win, ExposureMask | KeyReleaseMask | StructureNotifyMask);
   XMapWindow(dpy, win);
