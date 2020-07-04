@@ -43,7 +43,7 @@ void initialize_colors() {
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
-void plot_mandlebrot() {
+void plot_mandelbrot() {
   ComplexNumber c = { 0, 0 };
   ComplexNumber z = { 0, 0 };
   int i, j, s, count;
@@ -132,7 +132,7 @@ void keypress(XKeyEvent ev) {
   key_quantifier = 0;
 
   if (should_rerender) {
-    plot_mandlebrot();
+    plot_mandelbrot();
   }
 
   XFree(keysym);
@@ -166,7 +166,7 @@ void run_event_loop() {
     switch(ev.type) {
       case Expose:
         if (should_rerender) {
-          plot_mandlebrot();
+          plot_mandelbrot();
           should_rerender = False;
         }
         break;

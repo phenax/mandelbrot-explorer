@@ -1,15 +1,15 @@
-# mandle - Suckless hot key daemon
+# mandel - Mandelbrot explorer
 # See LICENSE file for copyright and license details.
 
 include config.mk
 
-SRC = mandle.c complex.c
+SRC = mandel.c complex.c
 OBJ = ${SRC:.c=.o}
 
-all: clean options mandle
+all: clean options mandel
 
 options:
-	@echo mandle build options:
+	@echo mandel build options:
 	@echo "CFLAGS   = ${CFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
@@ -17,10 +17,10 @@ options:
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-mandle: ${OBJ}
+mandel: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
-	rm -f mandle ${OBJ}
+	rm -f mandel ${OBJ}
 
 .PHONY: all options clean
