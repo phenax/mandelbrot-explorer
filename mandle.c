@@ -39,7 +39,7 @@ void initialize_colors() {
   background = to_xcolor("#0f0c19");
   steps[step_count++] = (Step) { 200,   to_xcolor("#000000"), NULL, 0 };
   steps[step_count++] = (Step) { 100,   to_xcolor("#ffffff"), NULL, 1 };
-  steps[step_count++] = (Step) { 20,    to_xcolor("#4e3aA3"), NULL, 1 };
+  steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
 void plot_mandlebrot() {
@@ -78,7 +78,7 @@ void plot_mandlebrot() {
         mag = magnitude(z);
       }
 
-      for (s = 0; s < step_count - 1; s++) {
+      for (s = 0; s < step_count; s++) {
         if (steps[s].step != 0 && count >= steps[s].step) {
           if (steps[s].gc)
             XDrawPoint(dpy, win, steps[s].gc, i, j);
