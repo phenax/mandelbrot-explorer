@@ -1,0 +1,114 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<math.h>
+
+#include<X11/Xlib.h>
+
+Display *dpy;
+int screen = 0;
+Window root, win;
+unsigned int width, height;
+
+XColor to_xcolor(const char *colorstr) {
+  XColor ptr, dummy;
+  XAllocNamedColor(dpy, DefaultColormap(dpy, screen), colorstr, &ptr, &dummy);
+  return ptr;
+}
+
+typedef struct complex_t {
+   double real, im;
+} ComplexNumber;
+
+ComplexNumber square(ComplexNumber a) {
+  return (ComplexNumber) { a.real * a.real - a.im * a.im, 2 * a.im * a.real };
+}
+
+ComplexNumber add(ComplexNumber a, ComplexNumber b) {
+  return (ComplexNumber) { a.real + b.real, a.im + b.im };
+}
+
+double magnitude(ComplexNumber a) {
+  return sqrt((a.real * a.real) + (a.im * a.im));
+}
+
+GC color_gc(char* color) {
+  XGCValues gr_values;
+  gr_values.foreground = to_xcolor(color).pixel;
+  GC gc = XCreateGC(dpy, win, GCForeground, &gr_values);
+  return gc;
+}
+
+double absf(double v) { return v < 0 ? -v : v; }
+
+int max_iterations = 500;
+
+void plot_mandlebrot() {
+  ComplexNumber c = { 0, 0 };
+  ComplexNumber z = { 0, 0 };
+  int i, j;
+  int count = 0;
+  double mag, prev_mag;
+
+  GC blue_gc = color_gc("#0000ff");
+  GC red_gc = color_gc("#ff5555");
+  GC white_gc = color_gc("#ffffff");
+
+  double threshold = 0.2;
+
+  double scale = 5;
+
+  double size = width;
+
+  for(i = 0; i < size; i++) {
+    c.real = ((double) i - (width / 2)) * scale / size;
+
+    for (j = 0; j < size; j++) {
+      c.im = ((double) j - (height / 2)) * scale / size;
+
+      z.real = z.im = 0;
+      mag = magnitude(z);
+      prev_mag = magnitude(z);
+
+      for(count = 0; absf(mag - prev_mag) < 5 && count < max_iterations; count++) {
+        z = add(square(z), c);
+        prev_mag = mag;
+        mag = magnitude(z);
+      }
+
+      if (count == max_iterations) {
+        XDrawPoint(dpy, win, red_gc, i, j);
+      }
+    }
+  }
+
+  XSync(dpy, False);
+}
+
+int main() {
+  dpy = XOpenDisplay(NULL);
+  root = DefaultRootWindow(dpy);
+
+  win = XCreateSimpleWindow(dpy, root, 0, 0, 100, 100, 1, BlackPixel(dpy, screen), BlackPixel(dpy, screen));
+
+  XMapWindow(dpy, win);
+
+  XSync(dpy, False);
+
+  // Wait for sync
+  // TODO: Use event
+  usleep(500);
+
+  int tmp;
+  unsigned tmp1;
+  XGetGeometry(dpy, win, &root, &tmp, &tmp, &width, &height, &tmp1, &tmp1);
+
+  plot_mandlebrot();
+
+  while(1) {
+    sleep(5);
+  }
+
+  XCloseDisplay(dpy);
+}
+
