@@ -108,16 +108,17 @@ void keypress(XKeyEvent ev) {
 
   int times = quantifier ? quantifier : 1;
   switch(*keysym) {
-    // Movement
+    // Absolute movement
     case XK_h: offset_x -= movement * times; break;
     case XK_l: offset_x += movement * times; break;
     case XK_j: offset_y += movement * times; break;
     case XK_k: offset_y -= movement * times; break;
 
+    // Slow movement
     case XK_Left: offset_x -= scale_offset * movement * times; break;
     case XK_Right: offset_x += scale_offset * movement * times; break;
-    case XK_Up: offset_y += scale_offset * movement * times; break;
-    case XK_Down: offset_y -= scale_offset * movement * times; break;
+    case XK_Up: offset_y -= scale_offset * movement * times; break;
+    case XK_Down: offset_y += scale_offset * movement * times; break;
 
     // Zoom
     case XK_equal: scale_offset /= zoomdiff*times; break;
