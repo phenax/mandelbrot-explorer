@@ -1,10 +1,13 @@
-# mandelbrot-explorer
+# Mandelbrot Explorer
 A simple x application to explore the mandelbrot set
 
-## Screenshots
-![Full](./screenshots/full.jpg)
 ![Part](./screenshots/part.jpg)
-![Grey](./screenshots/grey.jpg)
+
+## Build and run
+Clone this repo, `cd` into the directory and run `make`.
+
+Execute `./mandel` to launch the mandelbrot explorer
+
 
 ## Keybindings
 * `q` => Quit
