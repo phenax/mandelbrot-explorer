@@ -12,36 +12,49 @@ int screen = 0;
 Window root, win;
 unsigned int width, height;
 
+typedef struct Step { unsigned int step; XColor color; GC gc; } Step;
+
+#define GRADIENT_STEPS 6
+Step steps[GRADIENT_STEPS];
+
 XColor to_xcolor(const char *colorstr) {
   XColor ptr, dummy;
   XAllocNamedColor(dpy, DefaultColormap(dpy, screen), colorstr, &ptr, &dummy);
   return ptr;
 }
 
-GC color_gc(char* color) {
+GC color_gc(XColor c) {
   XGCValues gr_values;
-  gr_values.foreground = to_xcolor(color).pixel;
+  gr_values.foreground = c.pixel;
   GC gc = XCreateGC(dpy, win, GCForeground, &gr_values);
   return gc;
 }
 
-int max_iterations = 200;
+void initialize_colors() {
+  int i = 0;
+  steps[i++] = (Step) { 0,    to_xcolor("#000557"), NULL };
+  steps[i++] = (Step) { 8,    to_xcolor("#101567"), NULL };
+  steps[i++] = (Step) { 20,   to_xcolor("#5055a7"), NULL };
+  steps[i++] = (Step) { 50,   to_xcolor("#ffffff"), NULL };
+  steps[i++] = (Step) { 100,  to_xcolor("#ffffff"), NULL };
+  steps[i++] = (Step) { 200,  to_xcolor("#000000"), NULL };
+}
+
+double scale = 4;
 
 void plot_mandlebrot() {
   ComplexNumber c = { 0, 0 };
   ComplexNumber z = { 0, 0 };
-  int i, j;
-  int count = 0;
+  int i, j, s, count;
   double mag, prev_mag;
 
-  GC blue_gc = color_gc("#0000ff");
-  GC red_gc = color_gc("#ff5555");
-  GC white_gc = color_gc("#ffffff");
-
-  double threshold = 10000;
-
-  double scale = 4;
+  double threshold = 1000;
   double size = width;
+  int max_iterations = steps[GRADIENT_STEPS - 1].step;
+
+  for(int i = 0; i < GRADIENT_STEPS; i++) {
+    steps[i].gc = color_gc(steps[i].color);
+  }
 
   XClearWindow(dpy, win);
 
@@ -61,8 +74,10 @@ void plot_mandlebrot() {
         mag = magnitude(z);
       }
 
-      if (count == max_iterations) {
-        XDrawPoint(dpy, win, red_gc, i, j);
+      for (s = 0; s < GRADIENT_STEPS; s++) {
+        if (count >= steps[s].step) {
+          XDrawPoint(dpy, win, steps[s].gc, i, j);
+        }
       }
     }
   }
@@ -71,9 +86,6 @@ void plot_mandlebrot() {
 }
 
 void run_event_loop() {
-  int tmp;
-  unsigned int utmp;
-
   XEvent ev;
   XConfigureEvent cev;
 
@@ -105,7 +117,9 @@ int main() {
   dpy = XOpenDisplay(NULL);
   root = DefaultRootWindow(dpy);
 
-  win = XCreateSimpleWindow(dpy, root, 0, 0, 100, 100, 1, BlackPixel(dpy, screen), BlackPixel(dpy, screen));
+  initialize_colors();
+
+  win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 1, BlackPixel(dpy, screen), steps[0].color.pixel);
 
   XSelectInput(dpy, win, ExposureMask | StructureNotifyMask);
 
