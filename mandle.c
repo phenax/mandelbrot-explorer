@@ -38,8 +38,8 @@ GC color_gc(XColor c) {
 
 void initialize_colors() {
   background = to_xcolor("#0f0c19");
-  steps[step_count++] = (Step) { 200,   to_xcolor("#000000"), NULL, 0 };
-  steps[step_count++] = (Step) { 100,   to_xcolor("#ffffff"), NULL, 1 };
+  steps[step_count++] = (Step) { 100,   to_xcolor("#000000"), NULL, 0 };
+  steps[step_count++] = (Step) { 80,   to_xcolor("#ffffff"), NULL, 1 };
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
