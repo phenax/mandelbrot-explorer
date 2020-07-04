@@ -129,12 +129,28 @@ void keypress(XKeyEvent ev) {
   XFree(keysym);
 }
 
+void cleanup() {
+  if(dpy) XCloseDisplay(dpy);
+  if(win) XDestroyWindow(dpy, win);
+}
+
+int error_handler() {
+  cleanup();
+  return 0;
+}
+
 void run_event_loop() {
+  XSetErrorHandler(error_handler);
   XEvent ev;
   XConfigureEvent cev;
 
+  Atom wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols(dpy, win, &wmDeleteMessage, 1);
+
+  int running = True;
   char should_rerender = True;
-  while(1) {
+
+  while(running) {
     XNextEvent(dpy, &ev);
 
     switch(ev.type) {
@@ -155,8 +171,16 @@ void run_event_loop() {
       case KeyRelease:
         keypress(ev.xkey);
         break;
+      case ClientMessage:
+        if (ev.xclient.data.l[0] == wmDeleteMessage) {
+          cleanup();
+          running = False;
+        }
+        break;
     }
   }
+
+  cleanup();
 }
 
 int main() {
