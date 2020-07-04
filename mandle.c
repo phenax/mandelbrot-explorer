@@ -5,6 +5,8 @@
 
 #include "complex.h"
 
+// TODO: Multithread the drawing
+
 Display *dpy;
 int screen = 0;
 Window root, win;
@@ -38,7 +40,7 @@ void initialize_colors() {
   steps[i++] = (Step) { 20,   to_xcolor("#5055a7"), NULL };
   steps[i++] = (Step) { 50,   to_xcolor("#ffffff"), NULL };
   steps[i++] = (Step) { 100,  to_xcolor("#ffffff"), NULL };
-  steps[i++] = (Step) { 200,  to_xcolor("#000000"), NULL };
+  steps[i++] = (Step) { 100,  to_xcolor("#000000"), NULL };
 }
 
 void plot_mandlebrot() {
@@ -51,8 +53,8 @@ void plot_mandlebrot() {
   double size = width;
   int max_iterations = steps[GRADIENT_STEPS - 1].step;
 
-  for(int i = 0; i < GRADIENT_STEPS; i++) {
-    steps[i].gc = color_gc(steps[i].color);
+  for(s = 0; s < GRADIENT_STEPS; s++) {
+    steps[s].gc = color_gc(steps[s].color);
   }
 
   double scale = 4 + scale_offset;
@@ -86,21 +88,29 @@ void plot_mandlebrot() {
   XSync(dpy, False);
 }
 
+int quantifier = 0;
 void keypress(XKeyEvent ev) {
   int tmp;
   KeySym *keysym = XGetKeyboardMapping(dpy, ev.keycode, 1, &tmp);
 
-  int movement = 10;
+  int movement = 50;
   double zoomdiff = 0.3;
 
   char should_rerender = True;
+
+  if (*keysym >= XK_0 && *keysym <= XK_9) {
+    quantifier = (quantifier * 10) + (*keysym ^ XK_0);
+    return;
+  }
+
+  int times = quantifier ? quantifier : 1;
   switch(*keysym) {
-    case XK_h: offset_x -= movement; break;
-    case XK_l: offset_x += movement; break;
-    case XK_j: offset_y += movement; break;
-    case XK_k: offset_y -= movement; break;
-    case XK_equal: scale_offset -= zoomdiff; break;
-    case XK_minus: scale_offset += zoomdiff; break;
+    case XK_h: offset_x -= movement * times; break;
+    case XK_l: offset_x += movement * times; break;
+    case XK_j: offset_y += movement * times; break;
+    case XK_k: offset_y -= movement * times; break;
+    case XK_equal: scale_offset -= zoomdiff * times; break;
+    case XK_minus: scale_offset += zoomdiff * times; break;
 
     case XK_space: // Reset
       offset_x = 0;
@@ -109,6 +119,8 @@ void keypress(XKeyEvent ev) {
       break;
     default: should_rerender = False;
   }
+
+  quantifier = 0;
 
   if (should_rerender) {
     plot_mandlebrot();
