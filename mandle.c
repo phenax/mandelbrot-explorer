@@ -70,10 +70,38 @@ void plot_mandlebrot() {
   XSync(dpy, False);
 }
 
-int main() {
+void run_event_loop() {
   int tmp;
   unsigned int utmp;
 
+  XEvent ev;
+  XConfigureEvent cev;
+
+  char should_rerender = True;
+
+  while(1) {
+    XNextEvent(dpy, &ev);
+
+    switch(ev.type) {
+      case Expose:
+        if (should_rerender) {
+          plot_mandlebrot();
+          should_rerender = False;
+        }
+        break;
+      case ConfigureNotify:
+        cev = ev.xconfigure;
+        if (cev.width != width || cev.height != height) {
+          width = cev.width;
+          height = cev.height;
+          should_rerender = True;
+        }
+        break;
+    }
+  }
+}
+
+int main() {
   dpy = XOpenDisplay(NULL);
   root = DefaultRootWindow(dpy);
 
@@ -84,21 +112,8 @@ int main() {
   XMapWindow(dpy, win);
 
   XSync(dpy, False);
-  XEvent ev;
 
-  while(1) {
-    XNextEvent(dpy, &ev);
-
-    switch(ev.type) {
-      case Expose:
-        plot_mandlebrot();
-        break;
-      case ConfigureNotify:
-        XGetGeometry(dpy, win, &root, &tmp, &tmp, &width, &height, &utmp, &utmp);
-        break;
-      default:;
-    }
-  }
+  run_event_loop();
 
   XCloseDisplay(dpy);
 }
