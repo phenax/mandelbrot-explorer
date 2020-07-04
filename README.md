@@ -2,9 +2,9 @@
 A simple x application to explore the mandelbrot set
 
 ## Screenshots
-![Full](./screenhots/full.jpg)
-![Part](./screenhots/part.jpg)
-![Grey](./screenhots/grey.jpg)
+![Full](./screenshots/full.jpg)
+![Part](./screenshots/part.jpg)
+![Grey](./screenshots/grey.jpg)
 
 ## Keybindings
 * `q` => Quit
