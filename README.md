@@ -1,7 +1,7 @@
 # Mandelbrot Explorer
 A simple x application to explore the mandelbrot set
 
-![Part](./screenshots/part.jpg)
+![Part](./screenshots/pretty.jpg)
 
 ## Build and run
 Clone this repo, `cd` into the directory and run `make`.
