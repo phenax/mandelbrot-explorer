@@ -9,6 +9,7 @@
 
 typedef struct Step { unsigned int step; XColor color; GC gc; char should_paint; } Step;
 
+char running = True;
 Display *dpy;
 int screen = 0;
 Window root, win;
@@ -108,17 +109,13 @@ void keypress(XKeyEvent ev) {
 
   int times = quantifier ? quantifier : 1;
   switch(*keysym) {
-    // Absolute movement
-    case XK_h: offset_x -= movement * times; break;
-    case XK_l: offset_x += movement * times; break;
-    case XK_j: offset_y += movement * times; break;
-    case XK_k: offset_y -= movement * times; break;
+    case XK_q: running = False; break;
 
-    // Slow movement
-    case XK_Left: offset_x -= scale_offset * movement * times; break;
-    case XK_Right: offset_x += scale_offset * movement * times; break;
-    case XK_Up: offset_y -= scale_offset * movement * times; break;
-    case XK_Down: offset_y += scale_offset * movement * times; break;
+    // Movement
+    case XK_h: offset_x -= scale_offset * movement * times; break;
+    case XK_l: offset_x += scale_offset * movement * times; break;
+    case XK_j: offset_y -= scale_offset * movement * times; break;
+    case XK_k: offset_y += scale_offset * movement * times; break;
 
     // Zoom
     case XK_equal: scale_offset /= zoomdiff*times; break;
@@ -142,8 +139,10 @@ void keypress(XKeyEvent ev) {
 }
 
 void cleanup() {
-  if(dpy) XCloseDisplay(dpy);
-  if(win) XDestroyWindow(dpy, win);
+  if(win) {
+    XUnmapWindow(dpy, win);
+    XDestroyWindow(dpy, win);
+  }
 }
 
 int error_handler() {
@@ -159,7 +158,6 @@ void run_event_loop() {
   Atom wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
   XSetWMProtocols(dpy, win, &wmDeleteMessage, 1);
 
-  int running = True;
   char should_rerender = True;
 
   while(running) {
@@ -184,10 +182,8 @@ void run_event_loop() {
         keypress(ev.xkey);
         break;
       case ClientMessage:
-        if (ev.xclient.data.l[0] == wmDeleteMessage) {
-          cleanup();
+        if (ev.xclient.data.l[0] == wmDeleteMessage)
           running = False;
-        }
         break;
     }
   }
@@ -209,6 +205,6 @@ int main() {
 
   run_event_loop();
 
-  XCloseDisplay(dpy);
+  cleanup();
 }
 
