@@ -39,10 +39,11 @@ GC color_gc(XColor c) {
 void initialize_colors() {
   background = to_xcolor("#0f0c19");
   steps[step_count++] = (Step) { 100,   NULL, NULL, .should_paint = False };
-  steps[step_count++] = (Step) { 90,    to_xcolor("#ff0000"), NULL, 1 };
-  steps[step_count++] = (Step) { 80,    to_xcolor("#ffff00"), NULL, 1 };
-  steps[step_count++] = (Step) { 70,    to_xcolor("#00ff00"), NULL, 1 };
-  steps[step_count++] = (Step) { 50,    to_xcolor("#ffffff"), NULL, 1 };
+  steps[step_count++] = (Step) { 97,    to_xcolor("#ff0000"), NULL, 1 };
+  steps[step_count++] = (Step) { 90,    to_xcolor("#ffff00"), NULL, 1 };
+  steps[step_count++] = (Step) { 85,    to_xcolor("#00ff00"), NULL, 1 };
+  steps[step_count++] = (Step) { 77,    to_xcolor("#0000ff"), NULL, 1 };
+  steps[step_count++] = (Step) { 70,    to_xcolor("#ffffff"), NULL, 1 };
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
