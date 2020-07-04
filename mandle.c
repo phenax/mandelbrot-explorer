@@ -38,8 +38,8 @@ GC color_gc(XColor c) {
 
 void initialize_colors() {
   background = to_xcolor("#0f0c19");
-  steps[step_count++] = (Step) { 100,   to_xcolor("#000000"), NULL, 0 };
-  steps[step_count++] = (Step) { 80,   to_xcolor("#ffffff"), NULL, 1 };
+  steps[step_count++] = (Step) { 100,   to_xcolor("#ff0000"), NULL, .should_paint = False };
+  steps[step_count++] = (Step) { 80,    to_xcolor("#ffffff"), NULL, 1 };
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
@@ -53,7 +53,7 @@ void plot_mandlebrot() {
   double size = width;
   int max_iterations = steps[0].step;
 
-  for(s = 0; s < step_count; s++) {
+  for (s = 0; s < step_count; s++) {
     if (steps[s].should_paint && !steps[s].gc) {
       steps[s].gc = color_gc(steps[s].color);
     }
@@ -63,7 +63,7 @@ void plot_mandlebrot() {
 
   XClearWindow(dpy, win);
 
-  for(i = 0; i < size; i++) {
+  for (i = 0; i < size; i++) {
     c.real = offset_x + ((double) i - (width / 2)) * scale / size;
 
     for (j = 0; j < size; j++) {
@@ -73,7 +73,7 @@ void plot_mandlebrot() {
       mag = magnitude(z);
       prev_mag = mag;
 
-      for(count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
+      for (count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
         z = add(square(z), c);
         prev_mag = mag;
         mag = magnitude(z);
@@ -92,10 +92,10 @@ void plot_mandlebrot() {
   XSync(dpy, False);
 }
 
-int quantifier = 0;
+int key_quantifier = 0;
 void keypress(XKeyEvent ev) {
-  int tmp;
-  KeySym *keysym = XGetKeyboardMapping(dpy, ev.keycode, 1, &tmp);
+  int dummy;
+  KeySym *keysym = XGetKeyboardMapping(dpy, ev.keycode, 1, &dummy);
 
   double movement = 0.2;
   double zoomdiff = 1.2;
@@ -103,11 +103,11 @@ void keypress(XKeyEvent ev) {
   char should_rerender = True;
 
   if (*keysym >= XK_0 && *keysym <= XK_9) {
-    quantifier = (quantifier * 10) + (*keysym ^ XK_0);
+    key_quantifier = (key_quantifier * 10) + (*keysym ^ XK_0);
     return;
   }
 
-  int times = quantifier ? quantifier : 1;
+  int times = key_quantifier ? key_quantifier : 1;
   switch(*keysym) {
     case XK_q: running = False; break;
 
@@ -129,7 +129,7 @@ void keypress(XKeyEvent ev) {
     default: should_rerender = False;
   }
 
-  quantifier = 0;
+  key_quantifier = 0;
 
   if (should_rerender) {
     plot_mandlebrot();
@@ -139,7 +139,7 @@ void keypress(XKeyEvent ev) {
 }
 
 void cleanup() {
-  if(win) {
+  if (win) {
     XUnmapWindow(dpy, win);
     XDestroyWindow(dpy, win);
   }
@@ -160,7 +160,7 @@ void run_event_loop() {
 
   char should_rerender = True;
 
-  while(running) {
+  while (running) {
     XNextEvent(dpy, &ev);
 
     switch(ev.type) {
@@ -197,7 +197,7 @@ int main() {
 
   initialize_colors();
 
-  win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 1, BlackPixel(dpy, screen), background.pixel);
+  win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 0, BlackPixel(dpy, screen), background.pixel);
 
   XSelectInput(dpy, win, ExposureMask | KeyReleaseMask | StructureNotifyMask);
   XMapWindow(dpy, win);
