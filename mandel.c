@@ -92,8 +92,6 @@ void plot_mandelbrot() {
       }
     }
   }
-
-  XSync(dpy, False);
 }
 
 void cleanup() {
