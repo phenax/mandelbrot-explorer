@@ -7,7 +7,7 @@
 
 // TODO: Multithread the drawing
 
-typedef struct Step { unsigned int step; XColor color; GC gc; char should_paint } Step;
+typedef struct Step { unsigned int step; XColor color; GC gc; char should_paint; } Step;
 
 Display *dpy;
 int screen = 0;
@@ -53,7 +53,7 @@ void plot_mandlebrot() {
   int max_iterations = steps[0].step;
 
   for(s = 0; s < step_count; s++) {
-    if (steps[s].should_paint) {
+    if (steps[s].should_paint && !steps[s].gc) {
       steps[s].gc = color_gc(steps[s].color);
     }
   }
