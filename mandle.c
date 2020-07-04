@@ -4,6 +4,7 @@
 #include<math.h>
 
 #include<X11/Xlib.h>
+#include <X11/Xutil.h>
 
 #include "complex.h"
 
@@ -11,6 +12,9 @@ Display *dpy;
 int screen = 0;
 Window root, win;
 unsigned int width, height;
+
+int offset_x = 0, offset_y = 0;
+double scale_offset = 0;
 
 typedef struct Step { unsigned int step; XColor color; GC gc; } Step;
 
@@ -40,8 +44,6 @@ void initialize_colors() {
   steps[i++] = (Step) { 200,  to_xcolor("#000000"), NULL };
 }
 
-double scale = 4;
-
 void plot_mandlebrot() {
   ComplexNumber c = { 0, 0 };
   ComplexNumber z = { 0, 0 };
@@ -56,13 +58,15 @@ void plot_mandlebrot() {
     steps[i].gc = color_gc(steps[i].color);
   }
 
+  double scale = 4 + scale_offset;
+
   XClearWindow(dpy, win);
 
   for(i = 0; i < size; i++) {
-    c.real = ((double) i - (width / 2)) * scale / size;
+    c.real = (offset_x + (double) i - (width / 2)) * scale / size;
 
     for (j = 0; j < size; j++) {
-      c.im = ((double) j - (height / 2)) * scale / size;
+      c.im = (offset_y + (double) j - (height / 2)) * scale / size;
 
       z.real = z.im = 0;
       mag = magnitude(z);
@@ -83,6 +87,45 @@ void plot_mandlebrot() {
   }
 
   XSync(dpy, False);
+}
+
+void keypress(XKeyEvent ev) {
+  KeySym keysym = XKeycodeToKeysym(dpy, (KeyCode) ev.keycode, 0);
+  int movement = 10;
+  double zoomdiff = 0.3;
+
+  char should_rerender = True;
+
+  switch(keysym) {
+    case XK_h:
+      offset_x += movement;
+      break;
+    case XK_l:
+      offset_x -= movement;
+      break;
+    case XK_j:
+      offset_y += movement;
+      break;
+    case XK_k:
+      offset_y -= movement;
+      break;
+    case XK_equal:
+      scale_offset -= zoomdiff;
+      break;
+    case XK_minus:
+      scale_offset += zoomdiff;
+      break;
+    case XK_space:
+      offset_x = 0;
+      offset_y = 0;
+      scale_offset = 0;
+      break;
+    default: should_rerender = False;
+  }
+
+  if (should_rerender) {
+    plot_mandlebrot();
+  }
 }
 
 void run_event_loop() {
@@ -109,6 +152,9 @@ void run_event_loop() {
           should_rerender = True;
         }
         break;
+      case KeyRelease:
+        keypress(ev.xkey);
+        break;
     }
   }
 }
@@ -121,10 +167,8 @@ int main() {
 
   win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 1, BlackPixel(dpy, screen), steps[0].color.pixel);
 
-  XSelectInput(dpy, win, ExposureMask | StructureNotifyMask);
-
+  XSelectInput(dpy, win, ExposureMask | KeyReleaseMask | StructureNotifyMask);
   XMapWindow(dpy, win);
-
   XSync(dpy, False);
 
   run_event_loop();
