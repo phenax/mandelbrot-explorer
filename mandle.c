@@ -1,10 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<unistd.h>
-#include<math.h>
-
 #include<X11/Xlib.h>
-#include <X11/Xutil.h>
+#include<X11/Xutil.h>
 
 #include "complex.h"
 
@@ -70,7 +67,7 @@ void plot_mandlebrot() {
 
       z.real = z.im = 0;
       mag = magnitude(z);
-      prev_mag = magnitude(z);
+      prev_mag = mag;
 
       for(count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
         z = add(square(z), c);
@@ -90,32 +87,22 @@ void plot_mandlebrot() {
 }
 
 void keypress(XKeyEvent ev) {
-  KeySym keysym = XKeycodeToKeysym(dpy, (KeyCode) ev.keycode, 0);
+  int tmp;
+  KeySym *keysym = XGetKeyboardMapping(dpy, ev.keycode, 1, &tmp);
+
   int movement = 10;
   double zoomdiff = 0.3;
 
   char should_rerender = True;
+  switch(*keysym) {
+    case XK_h: offset_x -= movement; break;
+    case XK_l: offset_x += movement; break;
+    case XK_j: offset_y += movement; break;
+    case XK_k: offset_y -= movement; break;
+    case XK_equal: scale_offset -= zoomdiff; break;
+    case XK_minus: scale_offset += zoomdiff; break;
 
-  switch(keysym) {
-    case XK_h:
-      offset_x += movement;
-      break;
-    case XK_l:
-      offset_x -= movement;
-      break;
-    case XK_j:
-      offset_y += movement;
-      break;
-    case XK_k:
-      offset_y -= movement;
-      break;
-    case XK_equal:
-      scale_offset -= zoomdiff;
-      break;
-    case XK_minus:
-      scale_offset += zoomdiff;
-      break;
-    case XK_space:
+    case XK_space: // Reset
       offset_x = 0;
       offset_y = 0;
       scale_offset = 0;
@@ -126,6 +113,8 @@ void keypress(XKeyEvent ev) {
   if (should_rerender) {
     plot_mandlebrot();
   }
+
+  XFree(keysym);
 }
 
 void run_event_loop() {
@@ -133,7 +122,6 @@ void run_event_loop() {
   XConfigureEvent cev;
 
   char should_rerender = True;
-
   while(1) {
     XNextEvent(dpy, &ev);
 
