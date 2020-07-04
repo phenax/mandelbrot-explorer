@@ -86,27 +86,33 @@ void plot_mandlebrot() {
 }
 
 int main() {
+  int tmp;
+  unsigned int utmp;
+
   dpy = XOpenDisplay(NULL);
   root = DefaultRootWindow(dpy);
 
   win = XCreateSimpleWindow(dpy, root, 0, 0, 100, 100, 1, BlackPixel(dpy, screen), BlackPixel(dpy, screen));
 
+  XSelectInput(dpy, win, ExposureMask | StructureNotifyMask);
+
   XMapWindow(dpy, win);
 
   XSync(dpy, False);
-
-  // Wait for sync
-  // TODO: Use event
-  usleep(500);
-
-  int tmp;
-  unsigned tmp1;
-  XGetGeometry(dpy, win, &root, &tmp, &tmp, &width, &height, &tmp1, &tmp1);
-
-  plot_mandlebrot();
+  XEvent ev;
 
   while(1) {
-    sleep(5);
+    XNextEvent(dpy, &ev);
+
+    switch(ev.type) {
+      case Expose:
+        plot_mandlebrot();
+        break;
+      case ConfigureNotify:
+        XGetGeometry(dpy, win, &root, &tmp, &tmp, &width, &height, &utmp, &utmp);
+        break;
+      default:;
+    }
   }
 
   XCloseDisplay(dpy);
