@@ -5,6 +5,8 @@
 
 #include<X11/Xlib.h>
 
+#include "complex.h"
+
 Display *dpy;
 int screen = 0;
 Window root, win;
@@ -16,22 +18,6 @@ XColor to_xcolor(const char *colorstr) {
   return ptr;
 }
 
-typedef struct complex_t {
-   double real, im;
-} ComplexNumber;
-
-ComplexNumber square(ComplexNumber a) {
-  return (ComplexNumber) { a.real * a.real - a.im * a.im, 2 * a.im * a.real };
-}
-
-ComplexNumber add(ComplexNumber a, ComplexNumber b) {
-  return (ComplexNumber) { a.real + b.real, a.im + b.im };
-}
-
-double magnitude(ComplexNumber a) {
-  return sqrt((a.real * a.real) + (a.im * a.im));
-}
-
 GC color_gc(char* color) {
   XGCValues gr_values;
   gr_values.foreground = to_xcolor(color).pixel;
@@ -39,9 +25,7 @@ GC color_gc(char* color) {
   return gc;
 }
 
-double absf(double v) { return v < 0 ? -v : v; }
-
-int max_iterations = 500;
+int max_iterations = 200;
 
 void plot_mandlebrot() {
   ComplexNumber c = { 0, 0 };
@@ -54,11 +38,12 @@ void plot_mandlebrot() {
   GC red_gc = color_gc("#ff5555");
   GC white_gc = color_gc("#ffffff");
 
-  double threshold = 0.2;
+  double threshold = 10000;
 
-  double scale = 5;
-
+  double scale = 4;
   double size = width;
+
+  XClearWindow(dpy, win);
 
   for(i = 0; i < size; i++) {
     c.real = ((double) i - (width / 2)) * scale / size;
@@ -70,7 +55,7 @@ void plot_mandlebrot() {
       mag = magnitude(z);
       prev_mag = magnitude(z);
 
-      for(count = 0; absf(mag - prev_mag) < 5 && count < max_iterations; count++) {
+      for(count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
         z = add(square(z), c);
         prev_mag = mag;
         mag = magnitude(z);

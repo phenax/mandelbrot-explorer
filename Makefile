@@ -3,7 +3,7 @@
 
 include config.mk
 
-SRC = mandle.c
+SRC = mandle.c complex.c
 OBJ = ${SRC:.c=.o}
 
 all: clean options mandle
