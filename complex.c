@@ -2,23 +2,21 @@
 
 #include "complex.h"
 
-int fact(int x) {
-  if (x <= 1) return 1;
-  return x * fact(x - 1);
-}
-
-int comb(int n, int r) {
-  return fact(n) / (fact(n - r) * fact(r));
-}
-
 ComplexNumber complex_pow(ComplexNumber a, int n) {
   int r;
   double term;
   ComplexNumber result = { 0, 0 };
 
+  double part_real = pow(a.real, n), part_im = 1;
+  double constant = 1;
+
   for(r = 0; r <= n; r++) {
-    term = pow(a.real, n - r) * pow(a.im, r) * comb(n, r);
+    term = part_real * part_im * constant;
     term = r%4 < 2 ? term : -term;
+
+    part_im *= a.im;
+    part_real /= (a.real == 0) ? 1 : a.real;
+    constant *= (n - r) / ((double) r + 1);
 
     if (r % 2) {
       result.im += term;
