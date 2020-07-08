@@ -1,6 +1,7 @@
 # Mandelbrot Explorer
 A simple x application to explore the mandelbrot set
 
+![N-Degrees](./screenshots/n-deg.jpg)
 ![Part](./screenshots/pretty.jpg)
 
 ## Build and run
