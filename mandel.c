@@ -67,6 +67,8 @@ void plot_mandelbrot() {
 
   XClearWindow(dpy, win);
 
+  ComplexNumber x, y;
+
   for (i = 0; i < size; i++) {
     c.real = offset_x + ((double) i - (width / 2)) * scale / size;
 
@@ -78,7 +80,7 @@ void plot_mandelbrot() {
       prev_mag = mag;
 
       for (count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
-        z = add(square(z), c);
+        z = add(complex_pow(z, 3), c);
         prev_mag = mag;
         mag = magnitude(z);
       }
@@ -202,6 +204,12 @@ int main() {
   root = DefaultRootWindow(dpy);
 
   initialize_colors();
+
+  ComplexNumber num = { .real = -797.843091, .im = 3114.748953 };
+  ComplexNumber x = complex_pow(num, 3);
+  ComplexNumber y = cube(num);
+  printf("%f + %f\n", x.real, x.im);
+  printf("%f + %f\n", y.real, y.im);
 
   win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 0, BlackPixel(dpy, screen), background.pixel);
 

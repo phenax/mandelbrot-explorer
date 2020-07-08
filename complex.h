@@ -4,8 +4,13 @@ typedef struct complex_t {
 } ComplexNumber;
 
 ComplexNumber square(ComplexNumber a);
+ComplexNumber cube(ComplexNumber a);
+
+ComplexNumber complex_pow(ComplexNumber a, int n);
 
 ComplexNumber add(ComplexNumber a, ComplexNumber b);
+
+double diff(ComplexNumber a, ComplexNumber b);
 
 double magnitude(ComplexNumber a);
 
