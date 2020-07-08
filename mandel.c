@@ -138,7 +138,7 @@ void keypress(XKeyEvent ev) {
     case XK_minus: scale_offset *= zoomdiff*times; break;
 
     case XK_m: degree++; break;
-    case XK_n: degree--; break;
+    case XK_n: degree = degree <= 2 ? 2 : degree - 1; break;
 
     case XK_space: // Reset
       offset_x = 0;
