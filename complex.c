@@ -2,20 +2,6 @@
 
 #include "complex.h"
 
-ComplexNumber square(ComplexNumber a) {
-  return (ComplexNumber) {
-    a.real * a.real - a.im * a.im,
-    2 * a.im * a.real,
-  };
-}
-
-ComplexNumber cube(ComplexNumber a) {
-  return (ComplexNumber) {
-    pow(a.real, 3) - 3 * a.real * pow(a.im, 2),
-    3 * pow(a.real, 2) * a.im - pow(a.im, 3),
-  };
-}
-
 int fact(int x) {
   if (x <= 1) return 1;
   return x * fact(x - 1);

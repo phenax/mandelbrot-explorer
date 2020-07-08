@@ -17,6 +17,7 @@ unsigned int width, height;
 
 double offset_x = 0, offset_y = 0;
 double scale_offset = 1;
+int degree = 2;
 
 Step steps[10];
 unsigned int step_count = 0;
@@ -80,7 +81,7 @@ void plot_mandelbrot() {
       prev_mag = mag;
 
       for (count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
-        z = add(complex_pow(z, 3), c);
+        z = add(complex_pow(z, degree), c);
         prev_mag = mag;
         mag = magnitude(z);
       }
@@ -135,6 +136,9 @@ void keypress(XKeyEvent ev) {
     // Zoom
     case XK_equal: scale_offset /= zoomdiff*times; break;
     case XK_minus: scale_offset *= zoomdiff*times; break;
+
+    case XK_m: degree++; break;
+    case XK_n: degree--; break;
 
     case XK_space: // Reset
       offset_x = 0;
@@ -204,12 +208,6 @@ int main() {
   root = DefaultRootWindow(dpy);
 
   initialize_colors();
-
-  ComplexNumber num = { .real = -797.843091, .im = 3114.748953 };
-  ComplexNumber x = complex_pow(num, 3);
-  ComplexNumber y = cube(num);
-  printf("%f + %f\n", x.real, x.im);
-  printf("%f + %f\n", y.real, y.im);
 
   win = XCreateSimpleWindow(dpy, root, 100, 100, 500, 500, 0, BlackPixel(dpy, screen), background.pixel);
 

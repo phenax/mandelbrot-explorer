@@ -3,9 +3,6 @@ typedef struct complex_t {
    double real, im;
 } ComplexNumber;
 
-ComplexNumber square(ComplexNumber a);
-ComplexNumber cube(ComplexNumber a);
-
 ComplexNumber complex_pow(ComplexNumber a, int n);
 
 ComplexNumber add(ComplexNumber a, ComplexNumber b);
