@@ -18,6 +18,9 @@ Execute `./mandel` to launch the mandelbrot explorer
 * `j` => Move down
 * `k` => Move up
 
+* `m` => Increase degree
+* `n` => Decrease degree
+
 * `=` => Zoom in
 * `-` => Zoom out
 
