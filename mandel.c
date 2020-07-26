@@ -2,10 +2,8 @@
 #include<stdlib.h>
 #include<X11/Xlib.h>
 #include<X11/Xutil.h>
-
-#include "complex.h"
-
-// TODO: Multithread the drawing
+#include<math.h>
+#include<complex.h>
 
 typedef struct Step { unsigned int step; XColor color; GC gc; char should_paint; } Step;
 
@@ -23,6 +21,8 @@ Step steps[10];
 unsigned int step_count = 0;
 
 XColor background;
+
+double absf(double v) { return v < 0 ? -v : v; }
 
 XColor to_xcolor(const char *colorstr) {
   XColor ptr, dummy;
@@ -48,9 +48,16 @@ void initialize_colors() {
   steps[step_count++] = (Step) { 30,    to_xcolor("#4e3aA3"), NULL, 1 };
 }
 
+double complex natural_cpow(double complex c, int n) {
+  double complex result = c;
+  for(; n > 1; n--)
+    result *= c;
+  return result;
+}
+
 void plot_mandelbrot() {
-  ComplexNumber c = { 0, 0 };
-  ComplexNumber z = { 0, 0 };
+  double complex c = 0.0,
+                 z = 0.0;
   int i, j, s, count;
   double mag, prev_mag;
 
@@ -68,22 +75,19 @@ void plot_mandelbrot() {
 
   XClearWindow(dpy, win);
 
-  ComplexNumber x, y;
-
   for (i = 0; i < size; i++) {
-    c.real = offset_x + ((double) i - (width / 2)) * scale / size;
-
     for (j = 0; j < size; j++) {
-      c.im = offset_y + ((double) j - (height / 2)) * scale / size;
+      c = offset_x + ((double) i - (width / 2)) * scale / size
+        + I*(offset_y + ((double) j - (height / 2)) * scale / size);
 
-      z.real = z.im = 0;
-      mag = magnitude(z);
+      z = 0.0;
+      mag = cabs(z);
       prev_mag = mag;
 
       for (count = 0; absf(mag - prev_mag) < threshold && count < max_iterations; count++) {
-        z = add(complex_pow(z, degree), c);
+        z = natural_cpow(z, degree) + c;
         prev_mag = mag;
-        mag = magnitude(z);
+        mag = cabs(z);
       }
 
       for (s = 0; s < step_count; s++) {
